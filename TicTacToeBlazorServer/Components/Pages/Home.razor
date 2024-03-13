@@ -1,0 +1,86 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using TicTacToeBlazorServer.Components.Shared
+@using TicTacToeBlazorServer.Models
+@using TicTacToeBlazorServer.Services
+@inject ProtectedLocalStorage ProtectedSessionStore
+@inject ILobbyService lobbyService
+@inject IJSRuntime JSRuntime
+@inject RedirectManager RedirectManager
+@implements IAsyncDisposable
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+<div class="layout">
+    <div class="top-menu container flex-row justify-content-center align-items-center text-center">
+        <h2>Tic-tac-toe Blazor</h2>
+        <img class="img-fluid" style="height:250px;width:250px" src="/tic-tac-toe_logo.jpg" />
+    </div>
+    <div class="lobbies">
+        <div class="create-lobby-form justify-content-center">
+            <EditForm method="post" EditContext="@editContext" OnValidSubmit="CreateLobby" FormName="CreateLobby" class="form-inline">
+                <DataAnnotationsValidator />
+                <ValidationMessage For="() => CurrentPlayer.Name" class="text-danger" />
+                <div class="input-group">
+                    <InputText id="creator" @bind-Value="CurrentPlayer.Name" class="form-control" placeholder="Playername" aria-label="Playername" aria-describedby="basic-addon1" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn-success" style="height:100%; margin-left:5px;">Create Lobby</button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+        <WaitingLobbies IsInvalid="string.IsNullOrEmpty(CurrentPlayer.Name)" CurrentPlayer="CurrentPlayer" />
+    </div>
+</div>
+
+@code {
+    private IJSObjectReference? module;
+    private EditContext editContext;
+
+    [SupplyParameterFromForm]
+    public Player CurrentPlayer { get; set; } = new Player();
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(CurrentPlayer);
+        editContext.OnFieldChanged += SavePlayerName;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+             "import", "./Components/Pages/Home.razor.js");
+            var result = await ProtectedSessionStore.GetAsync<string>("currentPlayerName");
+            CurrentPlayer.Name = result.Success ? result.Value : CurrentPlayer.Name;
+            CurrentPlayer.Id = await JSRuntime.InvokeAsync<string>("getCookie", "UserId");
+            InvokeAsync(StateHasChanged);
+            await module.InvokeVoidAsync("registerBeforeUnloadEvent", DotNetObjectReference.Create(this));
+        }
+    }
+    private async void SavePlayerName(object sender, FieldChangedEventArgs e)
+    {
+        await ProtectedSessionStore.SetAsync("currentPlayerName", CurrentPlayer.Name);
+        InvokeAsync(StateHasChanged);
+    }
+    private void CreateLobby()
+    {
+        if (lobbyService.GetLobbyByPlayerId(CurrentPlayer.Id) == null)
+        {
+            var createdLobby = new Lobby() { Creator = CurrentPlayer };
+            lobbyService.CreateLobby(createdLobby);
+        }
+        RedirectManager.RedirectTo("/currentGame");
+    }
+    [JSInvokable]
+    public async Task NotifyServerAboutTabClosing()
+    {
+        //  lobbyService.LeaveLobby(lobbyService.GetLobbyByPlayerId(CurrentPlayer.Id), CurrentPlayer);
+    }
+    public async ValueTask DisposeAsync()
+    {
+        if (module != null)
+            await module.DisposeAsync();
+    }
+}

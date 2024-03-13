@@ -1,0 +1,22 @@
+﻿
+<div class="prof d-flex flex-column">
+    <div class="prof-img"></div>
+    <div class="bottom-flex d-flex flex-row">
+        <div class="prof-name">@Name</div>
+        @if (IsReady)
+        {
+            <div class="check">✅</div>
+        }
+    </div>
+
+</div>
+
+
+
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+    [Parameter]
+    public bool IsReady { get; set; }
+}

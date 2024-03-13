@@ -1,0 +1,70 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using TicTacToeBlazorServer.Models
+@using TicTacToeBlazorServer.Services
+
+@code {
+    public abstract class LobbyBaseComponent : ComponentBase, IAsyncDisposable
+    {
+        protected HubConnection? hubConnection;
+
+        [Inject]
+        protected NavigationManager Navigation { get; set; }
+        [Inject]
+        protected RedirectManager RedirectManager { get; set; }
+        [Inject]
+        protected ILobbyService LobbyService { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            await InitializeHub();
+        }
+        protected Task InitializeHub()
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/lobbyhub"))
+                .Build();
+            hubConnection.On<Lobby>("ReceiveUpdateLobbyState", (lobby) =>
+             {
+                 OnReceiveLobbyState(lobby);
+             });
+            hubConnection.On<string, Lobby>("ReceiveUpdateGameData", (gameData, lobby) =>
+            {
+                OnReceiveUpdateGameData(gameData, lobby);
+            });  
+            hubConnection.On<Lobby>("ResponseAskGameData", (lobby) =>
+            {
+                OnReceiveAskGameData(lobby);
+            });
+            return hubConnection.StartAsync();
+        }
+        protected virtual async void SendLobbyState(Lobby lobby)
+        {
+            if (hubConnection != null)
+                await hubConnection.SendAsync("UpdateLobbyState", lobby);
+        }
+        protected virtual async void SendGameData(string gameData, Lobby lobby)
+        {
+            if (hubConnection != null)
+                await hubConnection.SendAsync("UpdateGameData", gameData, lobby);
+        }
+        protected virtual async void AskGameData(Lobby lobby)
+        {
+            if (hubConnection != null)
+                await hubConnection.SendAsync("AskGameData", lobby);
+        }
+        protected virtual void OnReceiveLobbyState(Lobby lobby)
+        {
+        }
+        protected virtual void OnReceiveUpdateGameData(string gameData, Lobby lobby)
+        {
+        }
+        protected virtual void OnReceiveAskGameData( Lobby lobby)
+        {
+        }
+        public async ValueTask DisposeAsync()
+        {
+            if (hubConnection != null)
+                await hubConnection.DisposeAsync();
+        }
+    }
+}

@@ -1,0 +1,54 @@
+﻿.board {
+}
+
+    .board .board-header {
+    }
+
+    .board .board-body {
+        margin-bottom: 20px;
+    }
+
+    .board .board-footer {
+    }
+
+    .board .board-body .left-menu {
+        width: 250px;
+    }
+
+    .board .board-body .right-menu {
+    }
+
+    .board .board-body .left-menu .inner-block {
+        height: 100%;
+        border: 2px solid #A2A0A0;
+        padding: 10px 10px 10px 10px;
+        gap: 10px;
+    }
+
+    .board .board-body .right-menu .inner-block {
+        height: 100%;
+        text-align: center;
+    }
+
+        .board .board-body .right-menu .inner-block .current-turn-name {
+            font-size: 40px;
+            min-width: 210px;
+            min-height: 60px;
+            max-height: 60px;
+            max-width: 210px;
+            overflow: hidden;
+        }
+
+        .board .board-body .right-menu .inner-block .time-left {
+            font-size: 100px;
+        }
+
+        .board .board-body .right-menu .inner-block .buttons {
+            gap: 10px;
+            width: 100%;
+            padding-top: 20px;
+        }
+
+            .board .board-body .right-menu .inner-block .buttons .bt {
+                height: 40px;
+            }

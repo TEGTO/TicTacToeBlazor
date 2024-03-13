@@ -1,0 +1,46 @@
+﻿<div class="container">
+    <div class="grid">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="row">
+                @for (int j = 0; j < 3; j++)
+                {
+                    string symbol = "";
+                    if (IsGameStarted)
+                    {
+                        if (PlayersCells[i, j] != PlayerType.Empty)
+                            symbol = PlayersCells[i, j] == PlayerType.XPlayer ? "big-x" : "big-o";
+                    }
+                    int row = i, col = j;
+                    <div class="cell" @onclick="()=>CellClicked(row, col)">
+                        <div class="tic-tac-toe-symbol @symbol" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool gameIsStartedPrev = false;
+
+    [Parameter]
+    public bool IsGameStarted { get; set; }
+    [Parameter]
+    public PlayerType[,] PlayersCells { get; set; }
+    [Parameter]
+    public Action<int, int> OnCellClick { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (gameIsStartedPrev != IsGameStarted)
+        {
+            gameIsStartedPrev = IsGameStarted;
+            InvokeAsync(StateHasChanged);
+        }
+    }
+    private void CellClicked(int row, int column)
+    {
+        OnCellClick?.Invoke(row, column);
+    }
+}

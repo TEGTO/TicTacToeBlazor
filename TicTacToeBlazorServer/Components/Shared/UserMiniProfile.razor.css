@@ -1,0 +1,25 @@
+﻿.prof {
+    width: 150px;
+}
+
+    .prof .prof-img {
+        height: 113px;
+        border: 2px solid #A2A0A0;
+        background-image: url(/profile_icon.png);
+        background-size: 100%;
+    }
+
+.bottom-flex {
+    gap: 10px;
+    border: 2px solid #A2A0A0;
+}
+
+.prof .prof-name {
+    text-align: center;
+    border-top: 0px;
+    width: 150px;
+}
+
+.check {
+    border-left: 2px solid #A2A0A0;
+}

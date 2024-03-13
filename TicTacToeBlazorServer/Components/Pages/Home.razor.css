@@ -1,0 +1,27 @@
+﻿
+.layout .lobbies
+{
+  
+}
+.inner-li {
+    margin: 0 5px;
+}
+
+.navbar {
+    border: 1px solid #A2A0A0;
+}
+.pagination {
+    justify-content: center;
+}
+
+.pagination .page-link {
+    color: #000;
+}
+
+.grid-item img {
+    width: 100%;
+    height: auto;
+}
+.create-lobby-form
+{
+}
