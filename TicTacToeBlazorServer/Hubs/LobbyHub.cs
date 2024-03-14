@@ -5,17 +5,13 @@ namespace TicTacToeBlazorServer.Hubs
 {
     public class LobbyHub : Hub
     {
-        public async Task UpdateLobbyState(Lobby lobby)
+        public async Task UpdateLobbyState(Lobby lobby, string GameData)
         {
-            await Clients.All.SendAsync("ReceiveUpdateLobbyState", lobby);
-        }
-        public async Task UpdateGameData(string GameData, Lobby lobby)
-        {
-            await Clients.All.SendAsync("ReceiveUpdateGameData", GameData, lobby);
+            await Clients.Others.SendAsync("ReceiveUpdateLobbyState", lobby, GameData);
         }
         public async Task AskGameData(Lobby lobby)
         {
-            await Clients.All.SendAsync("ResponseAskGameData", lobby);
+            await Clients.Others.SendAsync("ResponseAskGameData", lobby);
         }
     }
 }

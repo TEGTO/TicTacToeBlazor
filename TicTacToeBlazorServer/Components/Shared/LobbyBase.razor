@@ -23,42 +23,30 @@
             hubConnection = new HubConnectionBuilder()
                 .WithUrl(Navigation.ToAbsoluteUri("/lobbyhub"))
                 .Build();
-            hubConnection.On<Lobby>("ReceiveUpdateLobbyState", (lobby) =>
+            hubConnection.On<Lobby, string>("ReceiveUpdateLobbyState", (lobby, gameData) =>
              {
-                 OnReceiveLobbyState(lobby);
+                 OnReceiveLobbyState(lobby, gameData);
              });
-            hubConnection.On<string, Lobby>("ReceiveUpdateGameData", (gameData, lobby) =>
-            {
-                OnReceiveUpdateGameData(gameData, lobby);
-            });  
             hubConnection.On<Lobby>("ResponseAskGameData", (lobby) =>
             {
                 OnReceiveAskGameData(lobby);
             });
             return hubConnection.StartAsync();
         }
-        protected virtual async void SendLobbyState(Lobby lobby)
+        protected virtual async void SendLobbyState(Lobby lobby, string gameData)
         {
             if (hubConnection != null)
-                await hubConnection.SendAsync("UpdateLobbyState", lobby);
-        }
-        protected virtual async void SendGameData(string gameData, Lobby lobby)
-        {
-            if (hubConnection != null)
-                await hubConnection.SendAsync("UpdateGameData", gameData, lobby);
+                await hubConnection.SendAsync("UpdateLobbyState", lobby, gameData);
         }
         protected virtual async void AskGameData(Lobby lobby)
         {
             if (hubConnection != null)
                 await hubConnection.SendAsync("AskGameData", lobby);
         }
-        protected virtual void OnReceiveLobbyState(Lobby lobby)
+        protected virtual void OnReceiveLobbyState(Lobby lobby, string gameData)
         {
         }
-        protected virtual void OnReceiveUpdateGameData(string gameData, Lobby lobby)
-        {
-        }
-        protected virtual void OnReceiveAskGameData( Lobby lobby)
+        protected virtual void OnReceiveAskGameData(Lobby lobby)
         {
         }
         public async ValueTask DisposeAsync()

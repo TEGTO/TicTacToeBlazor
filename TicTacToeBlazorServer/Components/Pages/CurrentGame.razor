@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using System.Diagnostics
 @using System.Text.Json
+@using System.Text.Json.Serialization
 @using TicTacToeBlazorServer.Components.Shared
 @using TicTacToeBlazorServer.Models
 @using TicTacToeBlazorServer.Services
@@ -14,35 +15,38 @@
 {
     <div class="board d-flex flex-column">
         <div class="board-header d-flex justify-content-center">
-            <h3 class="text-center">You win</h3>
+            @if (gameController.LastGameEndState != string.Empty)
+            {
+                <h3 class="text-center">@gameController.LastGameEndState</h3>
+            }
         </div>
         <div class="board-body d-flex">
             <div class="left-menu">
                 <div class="inner-block d-flex flex-column">
                     @if (currentLobby.Creator != null)
                     {
-                        <UserMiniProfile Name="@currentLobby.Creator.Name" IsReady="@gameData.IsCreatorReady" />
+                        <UserMiniProfile Name="@currentLobby.Creator.Name" IsReady="@gameController.IsCreatorReady" />
                     }
                     @if (currentLobby.JoinedPlayer != null)
                     {
-                        <UserMiniProfile Name="@currentLobby.JoinedPlayer.Name" IsReady="@gameData.IsJoinedReady" />
+                        <UserMiniProfile Name="@currentLobby.JoinedPlayer.Name" IsReady="@gameController.IsJoinedReady" />
                     }
                 </div>
             </div>
             <div class="center-menu ">
-                <TicTacToeGrid IsGameStarted="gameData.GameLogic.IsGameStarted" PlayersCells="gameData.GameLogic.Board" OnCellClick="OnCellClick" />
+                <TicTacToeGrid PlayersCells="gameController.Board2D" OnCellClick="OnCellClick" />
             </div>
             <div class="right-menu">
                 <div class="inner-block d-flex flex-column">
                     <div class="current-turn-name">
-                        @if (gameData.CurrentPlayerTurn != null)
+                        @if (gameController.CurrentPlayerTurn != null)
                         {
-                            <text>@gameData.CurrentPlayerTurn.Name</text>
+                            <text>@gameController.CurrentPlayerTurn.Name</text>
                         }
                     </div>
                     <div class="time-left">60</div>
                     <div class="buttons d-flex flex-column">
-                        <button type="button" class="bt btn-success" @onclick="@(e => ChangePlayerReadyState())" disabled="@gameData.GameLogic.IsGameStarted">Ready</button>
+                        <button type="button" class="bt btn-success" @onclick="@(e => ChangePlayerReadyState())" disabled="@gameController.IsGameStarted">Ready</button>
                         <button type="button" class="bt btn-danger" @onclick="@(e => LeaveGame())">Leave Lobby</button>
                     </div>
                 </div>
@@ -60,7 +64,7 @@ else
 @code {
     private Lobby? currentLobby;
     private string? idInCookies;
-    private GameData gameData;
+    private GameLogicCommand gameController;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -68,76 +72,68 @@ else
         {
             await GetDataFromCookies();
             GetLobbyStateFromService();
-            SendLobbyState(currentLobby);
             AskGameData(currentLobby);
         }
     }
-    protected override void OnReceiveLobbyState(Lobby lobby)
-    {
-        if (CheckIfThisLobby(lobby))
-            GetLobbyStateFromService();
-    }
-    protected override void OnReceiveUpdateGameData(string gameData, Lobby lobby)
+    protected override void OnReceiveLobbyState(Lobby lobby, string gameData)
     {
         if (CheckIfThisLobby(lobby))
         {
-            this.gameData = GameData.DeserializeFromJson(gameData);
-            SaveGameData().GetAwaiter();
-            CheckAndStartGame();
+            GetLobbyStateFromService();
+            if (!string.IsNullOrEmpty(gameData))
+            {
+                gameController = GameLogicCommand.DeserializeFromJson(gameData);
+                SaveGameData().GetAwaiter();
+            }
+            RestartGameIfNotEnoughPlayers();
             InvokeStateHasChanged();
         }
+    }
+    private void RestartGameIfNotEnoughPlayers()
+    {
+        if (currentLobby.Creator == null || currentLobby.JoinedPlayer == null)
+            gameController.RestartGame();
     }
     protected override void OnReceiveAskGameData(Lobby lobby)
     {
         if (CheckIfThisLobby(lobby))
-            SendGameData(gameData.SerializeToJson(), currentLobby);
+        {
+            GetLobbyStateFromService();
+            SendLobbyState(currentLobby, gameController.SerializeToJson());
+        }
     }
     private void LeaveGame()
     {
         Player player = LobbyService.GetPlayerById(idInCookies);
         LobbyService.LeaveLobby(currentLobby, player);
         RedirectManager.RedirectTo("/");
-        SendLobbyState(currentLobby);
+        SendLobbyState(currentLobby, gameController.SerializeToJson());
     }
     private void ChangePlayerReadyState()
     {
         if (currentLobby.Creator.Id == idInCookies)
-            gameData.IsCreatorReady = !gameData.IsCreatorReady;
+            gameController.IsCreatorReady = !gameController.IsCreatorReady;
         else
-            gameData.IsJoinedReady = !gameData.IsJoinedReady;
+            gameController.IsJoinedReady = !gameController.IsJoinedReady;
         CheckAndStartGame();
-        SaveGameData().GetAwaiter();
-        SendGameData(gameData.SerializeToJson(), currentLobby);
-        InvokeStateHasChanged();
+        SaveAndSendGameData();
     }
     private async Task GetDataFromCookies()
     {
         idInCookies = await JSRuntime.InvokeAsync<string>("getCookie", "UserId");
         string seriazliedGameData = await JSRuntime.InvokeAsync<string>("getCookie", "GameData");
-        gameData ??= string.IsNullOrEmpty(seriazliedGameData) ? new GameData() : GameData.DeserializeFromJson(seriazliedGameData);
+        gameController ??= string.IsNullOrEmpty(seriazliedGameData) ? new GameLogicCommand() : GameLogicCommand.DeserializeFromJson(seriazliedGameData);
     }
     private void CheckAndStartGame()
     {
-        if (gameData.IsCreatorReady && gameData.IsJoinedReady)
-        {
-            gameData.CurrentPlayerTurn = currentLobby.Creator;
-            gameData.GameLogic.StartGame();
-            InvokeStateHasChanged();
-        }
+        gameController.StartNewGame(currentLobby.Creator);
+        InvokeStateHasChanged();
     }
     private void OnCellClick(int row, int col)
     {
-        if (gameData.CurrentPlayerTurn.Id == idInCookies)
-        {
-            gameData.GameLogic.MakeMove(row, col);
-            gameData.CurrentPlayerTurn = gameData.CurrentPlayerTurn.Id == currentLobby.Creator.Id ? currentLobby.JoinedPlayer : currentLobby.Creator;
-            SaveGameData().GetAwaiter();
-            SendGameData(gameData.SerializeToJson(), currentLobby);
-        }
-    }
-    private async Task SaveGameData()
-    {
-        await JSRuntime.InvokeAsync<string>("deleteAndAppendCookie", "GameData", gameData.SerializeToJson());
+        gameController.OnMove(row, col, idInCookies, currentLobby);
+        SaveAndSendGameData();
+        InvokeStateHasChanged();
     }
     private void GetLobbyStateFromService()
     {
@@ -154,20 +150,15 @@ else
             return lobby.Id == currentLobby.Id;
         return false;
     }
-    private void InvokeStateHasChanged() => InvokeAsync(StateHasChanged);
-    public class GameData
+    private async void SaveAndSendGameData()
     {
-        public TicTacToeGameLogic GameLogic { get; set; }
-        public bool IsCreatorReady { get; set; }
-        public bool IsJoinedReady { get; set; }
-        public Player CurrentPlayerTurn { get; set; }
-
-        public GameData()
-        {
-            GameLogic = new TicTacToeGameLogic();
-        }
-
-        public static GameData DeserializeFromJson(string jsonString) => JsonSerializer.Deserialize<GameData>(jsonString);
-        public string SerializeToJson() => JsonSerializer.Serialize(this);
+        await SaveGameData();
+        InvokeStateHasChanged();
+        SendLobbyState(currentLobby, gameController.SerializeToJson());
     }
+    private async Task SaveGameData()
+    {
+        await JSRuntime.InvokeAsync<string>("deleteAndAppendCookie", "GameData", gameController.SerializeToJson());
+    }
+    private void InvokeStateHasChanged() => InvokeAsync(StateHasChanged);
 }

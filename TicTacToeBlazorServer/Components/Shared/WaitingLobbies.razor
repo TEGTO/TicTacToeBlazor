@@ -73,7 +73,7 @@ else
     {
         GetLobbiesFromService();
     }
-    protected override void OnReceiveLobbyState(Lobby lobby)
+    protected override void OnReceiveLobbyState(Lobby lobby, string gameData)
     {
         LobbyService.UpdateLobby(lobby);
         GetLobbiesFromService();
@@ -106,7 +106,7 @@ else
         if (currentLobby != null)
         {
             LobbyService.LeaveLobby(currentLobby, CurrentPlayer);
-            SendLobbyState(currentLobby);
+            SendLobbyState(currentLobby, null);
         }
     }
 }

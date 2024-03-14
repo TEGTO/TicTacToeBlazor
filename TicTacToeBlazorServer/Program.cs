@@ -23,6 +23,7 @@ services.AddDbContext<LobbyContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("LobbyDB")));
 services.AddScoped<ILobbyService, LobbyService>();
 services.AddScoped<RedirectManager>();
+services.AddScoped<ITimerService, TimerService>();
 var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
