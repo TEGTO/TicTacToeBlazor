@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TicTacToeBlazorServer.Models;
+using TicTacToeBlazor.Models;
 
-namespace TicTacToeBlazorServer.Data
+namespace TicTacToeBlazor.Data
 {
     public class LobbyContext : DbContext
     {

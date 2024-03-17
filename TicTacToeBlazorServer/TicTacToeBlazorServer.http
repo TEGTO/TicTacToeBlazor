@@ -1,0 +1,50 @@
+@TicTacToeBlazorServer_HostAddress = https://localhost:7064
+
+GET {{TicTacToeBlazorServer_HostAddress}}/Lobbies
+Accept: application/json
+
+###
+GET {{TicTacToeBlazorServer_HostAddress}}/Lobbies/lobby/a7690cde-1955-4beb-bcb4-a065f5936a9a
+
+###
+POST {{TicTacToeBlazorServer_HostAddress}}/Lobbies/createlobby 
+Content-Type: application/json
+
+{
+  "Id": null,
+  "Creator": {
+    "Id": "creator-id111",
+    "Name": "k"
+  },
+  "JoinedPlayer": {
+    "Id": "joined-player-id111",
+    "Name": "pk"
+  },
+  "IsWaitingForPlayer": true
+}
+
+###
+GET {{TicTacToeBlazorServer_HostAddress}}/GameLogic?currentLobby=828098f1-d6f3-4fe1-89f0-d2eaba2b7c70
+###
+PUT {{TicTacToeBlazorServer_HostAddress}}/GameLogic/updatecommand?currentLobby=828098f1-d6f3-4fe1-89f0-d2eaba2b7c70
+Content-Type: application/json
+
+{
+  "isCreatorReady": false,
+  "isJoinedReady": false,
+  "lastGameEndState": "jr is winner",
+  "isGameStarted": false,
+  "currentPlayerTurn": null,
+  "currentPlayerSymbol": 2,
+  "board": [
+    1,
+    2,
+    1,
+    0,
+    1,
+    2,
+    1,
+    0,
+    2
+  ]
+}

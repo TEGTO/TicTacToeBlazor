@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TicTacToeBlazorServer.Data;
-using TicTacToeBlazorServer.Models;
+using TicTacToeBlazor.Data;
+using TicTacToeBlazor.Models;
 
-namespace TicTacToeBlazorServer.Services
+namespace TicTacToeBlazor.Services
 {
     public class LobbyService : ILobbyService
     {
@@ -14,8 +14,13 @@ namespace TicTacToeBlazorServer.Services
         }
         public void CreateLobby(Lobby lobby)
         {
-            lobbyContext.Lobbies.Add(lobby);
-            SaveLobbiesState();
+            if (!CheckLobbyCondtions(lobby))
+                throw new InvalidDataException();
+            if(GetLobbyByPlayerId(lobby.Creator.Id) == null)
+            {
+                lobbyContext.Lobbies.Add(lobby);
+                SaveLobbiesState();
+            }
         }
         public IEnumerable<Lobby> GetLobbies()
         {
@@ -23,12 +28,15 @@ namespace TicTacToeBlazorServer.Services
         }
         public void UpdateLobby(Lobby lobby)
         {
-            Lobby l = GetLobbies().FirstOrDefault(x => x.Id == lobby.Id);
+            Lobby l = GetLobbyById(lobby.Id);
             if (l != null)
                 lobbyContext.Entry(l).Reload();
         }
-        public void JoinLobby(Lobby lobby, Player player)
+        public void JoinLobby(Lobby l, Player player)
         {
+            if (!CheckLobbyCondtions(l))
+                throw new InvalidDataException();
+            Lobby lobby = GetLobbyById(l.Id);
             if (!lobby.Creator.Id.Equals(player.Id) && lobby.JoinedPlayer == null)
             {
                 Lobby prevLobby = GetLobbyByPlayerId(player.Id);
@@ -40,10 +48,12 @@ namespace TicTacToeBlazorServer.Services
                 SaveLobbiesState();
             }
         }
-        public void LeaveLobby(Lobby lobby, Player player)
+        public void LeaveLobby(Lobby l, Player p)
         {
-            if (lobby != null)
+            if (CheckLobbyCondtions(l))
             {
+                Lobby lobby = GetLobbyById(l.Id);
+                Player player = GetPlayerById(p.Id);
                 lobby.IsWaitingForPlayer = true;
                 if (lobby.Creator.Id.Equals(player.Id))
                 {
@@ -74,14 +84,20 @@ namespace TicTacToeBlazorServer.Services
         }
         public Player GetPlayerById(string playerId) =>
             lobbyContext.Players.FirstOrDefault(x => x.Id == playerId);
+        private Lobby GetLobbyById(string lobbyId) =>
+            GetLobbies().FirstOrDefault(x => x.Id == lobbyId);
         private void SaveLobbiesState() => lobbyContext.SaveChanges();
-        private void DeleteLobby(Lobby lobby)
+        private void DeleteLobby(Lobby l)
         {
-            DeleteCreatorWithoutSaving(lobby);
-            if (lobby.JoinedPlayer != null)
-                DeleteJoinedWithoutSaving(lobby);
-            lobbyContext.Lobbies.Remove(lobby);
-            SaveLobbiesState();
+            if (CheckLobbyCondtions(l))
+            {
+                Lobby lobby = GetLobbyById(l.Id);
+                DeleteCreatorWithoutSaving(lobby);
+                if (lobby.JoinedPlayer != null)
+                    DeleteJoinedWithoutSaving(lobby);
+                lobbyContext.Lobbies.Remove(lobby);
+                SaveLobbiesState();
+            }
         }
         private void DeleteCreatorWithoutSaving(Lobby lobby)
         {
@@ -94,5 +110,12 @@ namespace TicTacToeBlazorServer.Services
             lobby.JoinedPlayer = null;
         }
         private void RemovePlayerByIdWithoutSaving(string playerId) => lobbyContext.Players.Remove(lobbyContext.Players.Find(playerId));
+        private bool CheckLobbyCondtions(Lobby lobby)
+        {
+            if (lobby == null ||
+               lobby.Creator == null ||
+               string.IsNullOrEmpty(lobby.Creator.Id)) return false;
+            return true;
+        }
     }
 }

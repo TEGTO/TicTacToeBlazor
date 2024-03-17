@@ -1,0 +1,232 @@
+﻿@page "/currentGame"
+@using TicTacToeBlazorServer.GameLogic
+@using static TicTacToeBlazor.Components.Shared.LobbyBase
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Diagnostics
+@using System.Text.Json
+@using System.Text.Json.Serialization
+@using TicTacToeBlazor.Components.Shared
+@using TicTacToeBlazor.Models
+@using TicTacToeBlazor.Services
+@rendermode InteractiveServer
+@inherits LobbyBaseComponent
+
+@if (currentLobby != null)
+{
+    <div class="board d-flex flex-column">
+        <div class="board-header d-flex justify-content-center">
+            @if (gameLogicCommand != null)
+            {
+                <h3 class="text-center">@gameLogicCommand.LastGameEndState</h3>
+            }
+        </div>
+        <div class="board-body d-flex">
+            <div class="left-menu">
+                <div class="inner-block d-flex flex-column">
+                    @if (currentLobby.Creator != null && gameLogicCommand != null)
+                    {
+                        string name = currentLobby.Creator.Id == currentPlayerId ? currentLobby.Creator.Name + " (You)" : currentLobby.Creator.Name!;
+                        <div class="creator-text-color">
+                            <UserMiniProfile Name="@name" IsReady="@gameLogicCommand.IsCreatorReady" />
+                        </div>
+
+                    }
+                    @if (currentLobby.JoinedPlayer != null && gameLogicCommand != null)
+                    {
+                        string name = currentLobby.JoinedPlayer.Id == currentPlayerId ? currentLobby.JoinedPlayer.Name + " (You)" : currentLobby.JoinedPlayer.Name!;
+                        <div class="joined-text-color">
+                            <UserMiniProfile Name="@name" IsReady="@gameLogicCommand.IsJoinedReady" />
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="center-menu ">
+                @if (gameLogicCommand != null)
+                {
+                    <TicTacToeGrid PlayersCells="@gameLogicCommand.Board" OnCellClick="OnCellClick" />
+                }
+            </div>
+            <div class="right-menu">
+                <div class="inner-block d-flex flex-column">
+                    @if (gameLogicCommand != null)
+                    {
+                        <div class="current-turn-name">
+                            @if (gameLogicCommand.CurrentPlayerTurn != null && !string.IsNullOrEmpty(gameLogicCommand.CurrentPlayerTurn.Name))
+                            {
+                                <text>@gameLogicCommand.CurrentPlayerTurn.Name</text>
+                            }
+                            else
+                            {
+                                <text>Nobody</text>
+                            }
+                        </div>
+                        <div class="score">
+                            <div class="player-score creator-text-color">@gameLogicCommand.CreatorScore</div>
+                            <div class="vl"></div>
+                            <div class="player-score joined-text-color">@gameLogicCommand.JoinedScore</div>
+                        </div>
+                    }
+                    <div class="buttons d-flex flex-column">
+                        @if (gameLogicCommand != null)
+                        {
+                            <button type="button" class="bt btn-success" @onclick="@(e => ChangePlayerReadyState())" disabled="@gameLogicCommand.IsGameStarted">Ready</button>
+                        }
+                        <button type="button" class="bt btn-danger" @onclick="@(e => LeaveGame())">Leave Lobby</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="board-footer">
+            <Chat LobbyId="@currentLobby.Id" CurrentPlayerId="@currentPlayerId" />
+        </div>
+    </div>
+}
+else
+{
+    <h3>No game for you</h3>
+}
+@code {
+    private Lobby? currentLobby;
+    private string? currentPlayerId;
+    private IGameLogicCommand gameLogicCommand;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await GetDataFromCookies();
+                await GetLobbyStateFromService();
+                await GetGameCommand();
+                InvokeStateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+    }
+    protected override async void OnReceiveLobbyState(string sender, Lobby lobby)
+    {
+        try
+        {
+            if (CheckIfUpdateData(sender, lobby))
+            {
+                await GetLobbyStateFromService();
+                await GetGameCommand();
+                await RestartGameIfNotEnoughPlayers();
+                InvokeStateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async Task GetDataFromCookies()
+    {
+        currentPlayerId = await JSRuntime.InvokeAsync<string>("window.getUserId");
+    }
+    private async Task GetLobbyStateFromService()
+    {
+        UpdateCurrentLobby(await LobbyApi.GetLobbyByPlayerId(currentPlayerId));
+    }
+    private async Task GetGameCommand()
+    {
+        if (currentLobby != null)
+            gameLogicCommand = await GameLogicApiClient.GetCommand(currentLobby.Id);
+    }
+    private async void LeaveGame()
+    {
+        try
+        {
+            Player player = await LobbyApi.GetPlayerById(currentPlayerId);
+            await LobbyApi.LeaveLobby(currentLobby, player);
+            RedirectManager.RedirectTo("/");
+            SendData();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async void ChangePlayerReadyState()
+    {
+        try
+        {
+            if (currentLobby.Creator.Id.Equals(currentPlayerId))
+                gameLogicCommand.IsCreatorReady = !gameLogicCommand.IsCreatorReady;
+            else
+                gameLogicCommand.IsJoinedReady = !gameLogicCommand.IsJoinedReady;
+            await TryStartGame();
+            SendData();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async Task TryStartGame()
+    {
+        gameLogicCommand.StartNewGame((new Random().Next(2) % 2 == 0) ?
+            currentLobby.Creator : currentLobby.JoinedPlayer);
+        await GameLogicApiClient.UpdateCommand(currentLobby.Id, gameLogicCommand);
+    }
+    private async Task RestartGameIfNotEnoughPlayers()
+    {
+        if (currentLobby != null && (currentLobby.Creator == null || currentLobby.JoinedPlayer == null))
+        {
+            gameLogicCommand.RestartGame();
+            await GameLogicApiClient.UpdateCommand(currentLobby.Id, gameLogicCommand);
+            SendData();
+        }
+    }
+    private async void OnCellClick(int row, int col)
+    {
+        try
+        {
+            gameLogicCommand.OnMove(row, col, currentPlayerId, currentLobby);
+            await GameLogicApiClient.UpdateCommand(currentLobby.Id, gameLogicCommand);
+            SendData();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private void UpdateCurrentLobby(Lobby lobby)
+    {
+        currentLobby = lobby;
+        InvokeStateHasChanged();
+    }
+    private bool CheckIfUpdateData(string sender, Lobby lobby)
+    {
+        if (!sender.Equals(currentPlayerId) && currentLobby != null)
+        {
+            if (currentLobby.Creator.Id.Equals(currentPlayerId) ||
+                (currentLobby.JoinedPlayer != null && currentLobby.JoinedPlayer.Id.Equals(currentPlayerId)))
+                return true;
+            else
+                return lobby != null && currentLobby.Id.Equals(lobby.Id);
+        }
+        return false;
+    }
+    private void SendData()
+    {
+        SendLobbyState(currentPlayerId, currentLobby);
+        InvokeStateHasChanged();
+    }
+    private async void InvokeStateHasChanged()
+    {
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+
+}

@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34607.119
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TicTacToeBlazor", "TicTacToeBlazor\TicTacToeBlazor.csproj", "{FECEA3C7-174F-4111-9842-5BFF2D461884}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TicTacToeBlazorServer", "TicTacToeBlazorServer\TicTacToeBlazorServer.csproj", "{0C416D01-CE6B-471D-AF7B-753CF3D4D327}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FECEA3C7-174F-4111-9842-5BFF2D461884}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FECEA3C7-174F-4111-9842-5BFF2D461884}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FECEA3C7-174F-4111-9842-5BFF2D461884}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FECEA3C7-174F-4111-9842-5BFF2D461884}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C416D01-CE6B-471D-AF7B-753CF3D4D327}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C416D01-CE6B-471D-AF7B-753CF3D4D327}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C416D01-CE6B-471D-AF7B-753CF3D4D327}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C416D01-CE6B-471D-AF7B-753CF3D4D327}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AB8631D2-8234-4693-ADDE-BB3C9A8B9342}
+	EndGlobalSection
+EndGlobal

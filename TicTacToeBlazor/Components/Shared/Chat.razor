@@ -1,0 +1,93 @@
+﻿@using static TicTacToeBlazor.Components.Shared.LobbyBase
+@inherits LobbyBaseComponent
+
+<div class="chat_window">
+    <ul class="messages"></ul>
+    <div class="bottom_wrapper d-flex flex-row">
+        <div class="message_input_wrapper">
+            <input class="message_input" @bind="message" @onkeyup="OnMessageKeyUp" placeholder="Type your message here..." />
+        </div>
+        <div class="send_message">
+            <button type="button" class="btn-success" @onclick="SendMessageJS">Send</button>
+        </div>
+    </div>
+</div>
+<div class="message_template">
+    <li class="message">
+        <div class="text_wrapper">
+            <div class="text"></div>
+        </div>
+    </li>
+</div>
+
+@code {
+    private IJSObjectReference? module;
+    private string message = "";
+
+    [Parameter]
+    public string LobbyId { get; set; }
+    [Parameter]
+    public string CurrentPlayerId { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                module = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./Components/Shared/Chat.razor.js");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+    }
+    private void OnMessageKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+            SendMessageJS();
+    }
+    private void SendMessageJS()
+    {
+        SendMessage(LobbyId, CurrentPlayerId, message);
+    }
+    protected override void OnReceiveMessage(string lobbyId, string senderId, string message)
+    {
+        try
+        {
+            if (LobbyId != null && LobbyId.Equals(lobbyId))
+                ReceiveMessageJS(message, CurrentPlayerId.Equals(senderId));
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async void ReceiveMessageJS(string message, bool side)
+    {
+        try
+        {
+            string sideStr = side ? "right" : "left";
+            await module.InvokeVoidAsync("sendMessage", message, sideStr);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    public override async ValueTask DisposeAsync()
+    {
+        try
+        {
+            await base.DisposeAsync();
+            if (module != null)
+                await module.DisposeAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+}

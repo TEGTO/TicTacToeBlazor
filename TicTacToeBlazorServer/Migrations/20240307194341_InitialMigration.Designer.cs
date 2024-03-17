@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TicTacToeBlazorServer.Data;
+using TicTacToeBlazor.Data;
 
 #nullable disable
 
-namespace TicTacToeBlazorServer.Migrations
+namespace TicTacToeBlazor.Migrations
 {
     [DbContext(typeof(LobbyContext))]
     [Migration("20240307194341_InitialMigration")]

@@ -1,4 +1,4 @@
-﻿namespace TicTacToeBlazorServer.GameLogic
+﻿namespace TicTacToeBlazor.GameLogic
 {
     public enum PlayerType
     {

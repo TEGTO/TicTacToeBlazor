@@ -1,0 +1,116 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using Microsoft.EntityFrameworkCore
+@using System.Diagnostics
+@using TicTacToeBlazor.Data
+@using TicTacToeBlazor.Models
+@using TicTacToeBlazor.Services
+@using static TicTacToeBlazor.Components.Shared.LobbyBase
+@rendermode InteractiveServer
+@inherits LobbyBaseComponent
+
+@if (lobbies == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="container mt-3 pl-5">
+        <!-- Grid -->
+        <div class="row justify-content-center">
+            @foreach (var item in GetCurrentPageItems())
+            {
+                var currentLobby = item;
+                if (item.IsWaitingForPlayer)
+                {
+                    <div class="col-lg-3 col-md-8 col-sm-8 mb-4 lobby-waiting-box">
+                        <div>
+                            <div class="lobby-waiting-join-text">
+                                Player '@item.Creator.Name' is waiting
+                            </div>
+                            <div class="lobby-waiting-join-button-container ">
+                                <button type="button" class="btn-outline-primary lobby-waiting-join-button" @onclick="e => ConnectToLobby(currentLobby)" disabled="@IsInvalid">Join</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <!-- Pagination -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= TotalPages; i++)
+                {
+                    var index = i;
+                    <li class="page-item @(i == CurrentPage ? "active" : "")">
+                        <button class="page-link" @onclick="@(e => ChangePage(index))">@i</button>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+}
+
+@code {
+    private int PageSize = 12;
+    private int CurrentPage = 1;
+    private IEnumerable<Lobby> lobbies;
+
+    [Parameter]
+    public bool IsInvalid { get; set; }
+    [Parameter]
+    public Player CurrentPlayer { get; set; }
+    private int TotalPages
+    {
+        get
+        {
+            if (lobbies != null)
+                return (int)Math.Ceiling((double)lobbies.Count() / PageSize);
+            else
+                return 0;
+        }
+    }
+    protected override void OnInitialized()
+    {
+        GetLobbiesFromService();
+    }
+    protected override void OnReceiveLobbyState(string sender, Lobby lobby)
+    {
+        GetLobbiesFromService();
+    }
+    private IEnumerable<Lobby> GetCurrentPageItems()
+    {
+        int startIndex = (CurrentPage - 1) * PageSize;
+        int endIndex = Math.Min(startIndex + PageSize, lobbies.Count());
+        return lobbies.Skip(startIndex).Take(endIndex - startIndex);
+    }
+    private void ChangePage(int page)
+    {
+        CurrentPage = page;
+    }
+    private async void GetLobbiesFromService()
+    {
+        try
+        {
+            lobbies = (await LobbyApi.GetLobbies()).Where(x => x.IsWaitingForPlayer);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async void ConnectToLobby(Lobby lobby)
+    {
+        try
+        {
+            await LobbyApi.JoinLobby(lobby, CurrentPlayer);
+            SendLobbyState(CurrentPlayer.Id!, lobby);
+            RedirectManager.RedirectTo("/currentGame");
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex) 
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+}

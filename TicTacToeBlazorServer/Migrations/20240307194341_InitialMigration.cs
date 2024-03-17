@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace TicTacToeBlazorServer.Migrations
+namespace TicTacToeBlazor.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration

@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TicTacToeBlazorServer.Models
+namespace TicTacToeBlazor.Models
 {
     public class Player
     {
         [Key]
-        public string Id { get; set; }
-        [Required, MaxLength(16)]
-        public string Name { get; set; }
+        public string? Id { get; set; }
+        [MaxLength(16)]
+        public string? Name { get; set; }
     }
 }

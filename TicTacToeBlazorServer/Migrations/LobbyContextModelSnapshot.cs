@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using TicTacToeBlazorServer.Data;
+using TicTacToeBlazor.Data;
 
 #nullable disable
 
-namespace TicTacToeBlazorServer.Migrations
+namespace TicTacToeBlazor.Migrations
 {
     [DbContext(typeof(LobbyContext))]
     partial class LobbyContextModelSnapshot : ModelSnapshot

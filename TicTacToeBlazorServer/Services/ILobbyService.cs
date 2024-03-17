@@ -1,6 +1,6 @@
-﻿using TicTacToeBlazorServer.Models;
+﻿using TicTacToeBlazor.Models;
 
-namespace TicTacToeBlazorServer.Services
+namespace TicTacToeBlazor.Services
 {
     public interface ILobbyService
     {

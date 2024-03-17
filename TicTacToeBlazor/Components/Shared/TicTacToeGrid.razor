@@ -1,0 +1,34 @@
+﻿@using TicTacToeBlazor.GameLogic
+<div class="container">
+    <div class="grid">
+        @for (int i = 0; i < 3; i++)
+        {
+            <div class="row">
+                @for (int j = 0; j < 3; j++)
+                {
+                    string symbol = "";
+                    if (PlayersCells[i * 3 + j] != PlayerType.Empty)
+                        symbol = PlayersCells[i * 3 + j] == PlayerType.XPlayer ? "big-x" : "big-o";
+                    int row = i, col = j;
+                    <div class="cell" @onclick="()=>CellClicked(row, col)">
+                        <div class="tic-tac-toe-symbol @symbol" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private bool gameIsStartedPrev = false;
+
+    [Parameter]
+    public PlayerType[] PlayersCells { get; set; }
+    [Parameter]
+    public Action<int, int> OnCellClick { get; set; }
+
+    private void CellClicked(int row, int column)
+    {
+        OnCellClick?.Invoke(row, column);
+    }
+}

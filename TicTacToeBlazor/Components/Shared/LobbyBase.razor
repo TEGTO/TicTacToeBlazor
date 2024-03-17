@@ -1,0 +1,94 @@
+﻿@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Diagnostics
+@using TicTacToeBlazor.Models
+@using TicTacToeBlazor.Services
+
+@code {
+    public abstract class LobbyBaseComponent : ComponentBase, IAsyncDisposable
+    {
+        protected HubConnection? hubConnection;
+
+        [Inject]
+        protected IGameLogicApiClient GameLogicApiClient { get; set; }
+        [Inject]
+        protected NavigationManager Navigation { get; set; }
+        [Inject]
+        protected RedirectManager RedirectManager { get; set; }
+        [Inject]
+        protected ILobbyApiClient LobbyApi { get; set; }
+        [Inject]
+        protected ILoggerClient Logger { get; set; }
+        [Inject]
+        protected IJSRuntime JSRuntime { get; set; }
+
+        protected override async Task OnInitializedAsync()
+        {
+            try
+            {
+                await InitializeHub();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+        protected Task InitializeHub()
+        {
+            hubConnection = new HubConnectionBuilder()
+                .WithUrl(Navigation.ToAbsoluteUri("/lobbyhub"))
+                .Build();
+            hubConnection.On<string, Lobby>("ReceiveUpdateLobbyState", (sender, lobby) =>
+                {
+                    OnReceiveLobbyState(sender, lobby);
+                });
+            hubConnection.On<string, string, string>("ReceiveMessage", (lobbyId, senderId, message) =>
+                {
+                    OnReceiveMessage(lobbyId, senderId, message);
+                });
+            return hubConnection.StartAsync();
+        }
+        protected virtual async void SendLobbyState(string sender, Lobby lobby)
+        {
+            try
+            {
+                if (hubConnection != null)
+                    await hubConnection.SendAsync("UpdateLobbyState", sender, lobby);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+        protected virtual async void SendMessage(string lobbyId, string sender, string message)
+        {
+            try
+            {
+                if (hubConnection != null)
+                    await hubConnection.SendAsync("SendMessage", lobbyId, sender, message);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+        protected virtual void OnReceiveLobbyState(string sender, Lobby lobby)
+        {
+        }
+        protected virtual void OnReceiveMessage(string lobbyId, string senderId, string message)
+        {
+        }
+        public virtual async ValueTask DisposeAsync()
+        {
+            try
+            {
+                if (hubConnection != null)
+                    await hubConnection.DisposeAsync();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+    }
+}

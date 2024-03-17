@@ -1,0 +1,90 @@
+﻿@page "/"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
+@using System.Diagnostics
+@using TicTacToeBlazor.Components.Shared
+@using TicTacToeBlazor.Models
+@using TicTacToeBlazor.Services
+@using static TicTacToeBlazor.Components.Shared.LobbyBase
+@inject ProtectedLocalStorage ProtectedSessionStore
+@rendermode InteractiveServer
+@inherits LobbyBaseComponent
+
+<PageTitle>Home</PageTitle>
+<div class="layout">
+    <div class="top-menu container flex-row justify-content-center align-items-center text-center">
+        <h2>Tic-tac-toe Blazor</h2>
+        <img class="img-fluid" style="height:300px;width:300px" src="/tic-tac-toe_39453.png" />
+    </div>
+    <div class="lobbies">
+        <div class="create-lobby-form justify-content-center">
+            <EditForm method="post" EditContext="@editContext" OnValidSubmit="CreateLobby" FormName="CreateLobby" class="form-inline">
+                <DataAnnotationsValidator />
+                <ValidationMessage For="() => CurrentPlayer.Name" class="text-danger" />
+                <div class="input-group">
+                    <InputText id="creator" @bind-Value="CurrentPlayer.Name" class="form-control" placeholder="Playername" aria-label="Playername" aria-describedby="basic-addon1" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn-success" style="height:100%; margin-left:5px;">Create Lobby</button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+        <WaitingLobbies IsInvalid="string.IsNullOrEmpty(CurrentPlayer.Name)" CurrentPlayer="CurrentPlayer" />
+    </div>
+</div>
+
+@code {
+    private EditContext editContext;
+
+    [SupplyParameterFromForm]
+    public Player CurrentPlayer { get; set; } = new Player();
+
+    protected override void OnInitialized()
+    {
+        editContext = new EditContext(CurrentPlayer);
+        editContext.OnFieldChanged += SavePlayerName!;
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var result = await ProtectedSessionStore.GetAsync<string>("currentPlayerName");
+                CurrentPlayer.Name = result.Success ? result.Value! : CurrentPlayer.Name;
+                CurrentPlayer.Id = await JSRuntime.InvokeAsync<string>("window.getUserId");
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex.Message);
+            }
+        }
+    }
+    private async void SavePlayerName(object sender, FieldChangedEventArgs e)
+    {
+        try
+        {
+            await ProtectedSessionStore.SetAsync("currentPlayerName", CurrentPlayer.Name);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+    private async void CreateLobby()
+    {
+        try
+        {
+            var createdLobby = new Lobby() { Creator = CurrentPlayer };
+            await LobbyApi.CreateLobby(createdLobby);
+            SendLobbyState(CurrentPlayer.Id!, createdLobby);
+            RedirectManager.RedirectTo("/currentGame");
+        }
+        catch (Exception ex)
+        {
+            Logger.Error(ex.Message);
+        }
+    }
+}

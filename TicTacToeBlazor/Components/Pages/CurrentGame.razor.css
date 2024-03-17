@@ -1,0 +1,80 @@
+﻿.board {
+    flex-wrap: wrap;
+    width: 100%;
+    align-content: center;
+}
+
+    .board .board-header {
+    }
+
+    .board .board-body {
+        margin-bottom: 20px;
+    }
+
+    .board .board-footer {
+    }
+
+    .board .board-body .left-menu {
+        width: 250px;
+    }
+
+    .board .board-body .right-menu {
+    }
+
+    .board .board-body .left-menu .inner-block {
+        height: 100%;
+        border: 2px solid #A2A0A0;
+        padding: 10px 10px 10px 10px;
+        gap: 10px;
+    }
+
+    .board .board-body .right-menu .inner-block {
+        height: 100%;
+        text-align: center;
+    }
+
+        .board .board-body .right-menu .inner-block .current-turn-name {
+            font-size: 40px;
+            min-width: 210px;
+            min-height: 60px;
+            max-height: 60px;
+            max-width: 210px;
+            overflow: hidden;
+        }
+
+        .board .board-body .right-menu .inner-block .score {
+            display: flex;
+            flex-direction: row;
+            font-size: 70px;
+            margin-top: 45px;
+            gap: 20px;
+            align-items: center;
+            padding-left: 20%;
+        }
+
+            .board .board-body .right-menu .inner-block .score .vl {
+                border-left: 3px solid black;
+                width: 10px;
+                height: 100%;
+            }
+
+            .board .board-body .right-menu .inner-block .score .player-score {
+            }
+
+        .board .board-body .right-menu .inner-block .buttons {
+            gap: 10px;
+            width: 100%;
+            padding-top: 20px;
+        }
+
+            .board .board-body .right-menu .inner-block .buttons .bt {
+                height: 40px;
+            }
+
+.creator-text-color {
+    color: #0D8400;
+}
+
+.joined-text-color {
+    color: #E06500;
+}
