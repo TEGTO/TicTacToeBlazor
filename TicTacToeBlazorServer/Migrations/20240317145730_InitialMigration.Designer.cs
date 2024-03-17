@@ -8,10 +8,10 @@ using TicTacToeBlazor.Data;
 
 #nullable disable
 
-namespace TicTacToeBlazor.Migrations
+namespace TicTacToeBlazorServer.Migrations
 {
     [DbContext(typeof(LobbyContext))]
-    [Migration("20240307194341_InitialMigration")]
+    [Migration("20240317145730_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -19,12 +19,12 @@ namespace TicTacToeBlazor.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("TicTacToeBlazorServer.Models.Lobby", b =>
+            modelBuilder.Entity("TicTacToeBlazor.Models.Lobby", b =>
                 {
                     b.Property<string>("Id")
                         .ValueGeneratedOnAdd()
@@ -48,13 +48,12 @@ namespace TicTacToeBlazor.Migrations
                     b.ToTable("Lobbies");
                 });
 
-            modelBuilder.Entity("TicTacToeBlazorServer.Models.Player", b =>
+            modelBuilder.Entity("TicTacToeBlazor.Models.Player", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("nvarchar(16)");
 
@@ -63,13 +62,13 @@ namespace TicTacToeBlazor.Migrations
                     b.ToTable("Players");
                 });
 
-            modelBuilder.Entity("TicTacToeBlazorServer.Models.Lobby", b =>
+            modelBuilder.Entity("TicTacToeBlazor.Models.Lobby", b =>
                 {
-                    b.HasOne("TicTacToeBlazorServer.Models.Player", "Creator")
+                    b.HasOne("TicTacToeBlazor.Models.Player", "Creator")
                         .WithMany()
                         .HasForeignKey("CreatorId");
 
-                    b.HasOne("TicTacToeBlazorServer.Models.Player", "JoinedPlayer")
+                    b.HasOne("TicTacToeBlazor.Models.Player", "JoinedPlayer")
                         .WithMany()
                         .HasForeignKey("JoinedPlayerId");
 

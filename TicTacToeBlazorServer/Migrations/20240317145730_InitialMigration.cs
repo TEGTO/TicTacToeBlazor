@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace TicTacToeBlazor.Migrations
+namespace TicTacToeBlazorServer.Migrations
 {
     /// <inheritdoc />
     public partial class InitialMigration : Migration
@@ -15,7 +15,7 @@ namespace TicTacToeBlazor.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: false)
+                    Name = table.Column<string>(type: "nvarchar(16)", maxLength: 16, nullable: true)
                 },
                 constraints: table =>
                 {

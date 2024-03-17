@@ -1,6 +1,4 @@
-﻿using TicTacToeBlazor.GameLogic;
-using TicTacToeBlazor.Models;
-using TicTacToeBlazorServer.GameLogic;
+﻿using TicTacToeBlazorServer.GameLogic;
 
 namespace TicTacToeBlazor.Services
 {
