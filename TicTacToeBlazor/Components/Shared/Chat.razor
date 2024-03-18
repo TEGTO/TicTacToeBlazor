@@ -5,7 +5,7 @@
     <ul class="messages"></ul>
     <div class="bottom_wrapper d-flex flex-row">
         <div class="message_input_wrapper">
-            <input class="message_input" @bind="message" @onkeyup="OnMessageKeyUp" placeholder="Type your message here..." />
+            <input class="message_input" @bind="inputMessage" @onkeyup="OnMessageKeyUp" placeholder="Type your message here..." />
         </div>
         <div class="send_message">
             <button type="button" class="btn-success" @onclick="SendMessageJS">Send</button>
@@ -22,7 +22,7 @@
 
 @code {
     private IJSObjectReference? module;
-    private string message = "";
+    private string inputMessage = "";
 
     [Parameter]
     public string LobbyId { get; set; }
@@ -51,7 +51,7 @@
     }
     private void SendMessageJS()
     {
-        SendMessage(LobbyId, CurrentPlayerId, message);
+        SendMessage(LobbyId, CurrentPlayerId, inputMessage);
     }
     protected override void OnReceiveMessage(string lobbyId, string senderId, string message)
     {

@@ -169,7 +169,7 @@ else
     }
     private async Task TryStartGame()
     {
-        gameLogicCommand.StartNewGame((new Random().Next(2) % 2 == 0) ?
+        gameLogicCommand.StartNewGame((new Random().Next(0, 2) == 0) ?
             currentLobby.Creator : currentLobby.JoinedPlayer);
         await GameLogicApiClient.UpdateCommand(currentLobby.Id, gameLogicCommand);
     }

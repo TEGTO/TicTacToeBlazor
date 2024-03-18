@@ -1,13 +1,13 @@
 ﻿
 var Message;
-export function sendMessage (text, message_side) {
+export function sendMessage(text, message_side) {
     var $messages, message;
     if (text.trim() === '') {
         return;
     }
-    $('.message_input').val('');
+    if (message_side === 'right')
+        $('.message_input').val('');
     $messages = $('.messages');
-    // message_side = message_side === 'left' ? 'right' : 'left';
     message = new Message({
         text: text,
         message_side: message_side
