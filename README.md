@@ -30,3 +30,17 @@ to connect to TicTacToeBlazorServer.
 <hr>
 
 ![image](https://github.com/TEGTO/TicTacToeBlazor/assets/90476119/5ca6e2d2-da69-4aa8-85fb-3bb45adac324)
+
+<hr>
+
+![image](https://github.com/TEGTO/TicTacToeBlazor/assets/90476119/ddd53982-d065-41d2-8fbd-d28629e1b80f)
+
+<hr>
+
+![image](https://github.com/TEGTO/TicTacToeBlazor/assets/90476119/2cba52e7-3800-41d0-a84c-4615bdb80d7d)
+
+<hr>
+
+![image](https://github.com/TEGTO/TicTacToeBlazor/assets/90476119/a00493d8-9b1f-4d10-b6b1-5db056d41f53)
+
+
