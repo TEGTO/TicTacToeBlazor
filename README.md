@@ -1,4 +1,4 @@
-## [WEBSITE](https://tictactoeblazor.azurewebsites.net/)
+## [WEBSITE (Serverless database, give it some time)](https://tictactoeblazor.azurewebsites.net/)
 
 ### :skull: Tic-Tac-Toe Game Developed with ASP.NET Using Blazor for Frontend
 
